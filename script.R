@@ -30,14 +30,14 @@ for (batch in batchs[-1]) {
 
   register_pkgs <- c("httr", "rvest", "jsonlite", "tidyverse")
   register_funs <- c("download_potential_data", "sleep_randomly", "countries_data",
-    "reformat_data_frame", "get_data", "fetch")
+    "reformat_data_frame", "get_data", "fetch", "code_tw")
 
   potential_data <- foreach::foreach(i = unlist(batch),
     .export = register_funs, .packages = register_pkgs,
     .combine = dplyr::bind_rows, .verbose = TRUE
   ) %do% {
     sleep_randomly()
-    download_potential_data(market = i)
+    download_potential_data(exporter = code_tw, market = i)
   }
 
   write_excel_csv(potential_data, paste0("data/sub_potential_data/potential_data_", min(batch), "_", max(batch), ".csv"), na = "")
@@ -51,5 +51,6 @@ potential_data <- map(fs::dir_ls("data/sub_potential_data/"), read_csv,
   col_types = paste0(rep("c", 30), collapse = ""))
 
 potential_data <- reduce(potential_data, bind_rows)
-write_excel_csv(potential_data, "data/potential_data_add.csv", na = "")
+write_excel_csv(potential_data, "data/potential_data_all.csv", na = "")
 ### END bind sub-potential data ###
+

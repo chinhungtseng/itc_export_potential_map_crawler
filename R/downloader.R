@@ -84,9 +84,15 @@ download_potential_data <- function (exporter = 490, market) {
   tmp_data <- jsonlite::fromJSON(fetch(urls))
   tmp_data <- reformat_data_frame(tmp_data)
 
-  tmp_data$CountryCode <- countries_data[i, ]$code
-  tmp_data$CountryName <- countries_data[i, ]$name
-  tmp_data$CountryParentCode <- countries_data[i, ]$parentCode
+  tmp_data$CountryCode <- market
+  tmp_data$CountryName <- country_info(market)$name
+  tmp_data$CountryParentCode <- country_info(market)$parentCode
 
   tmp_data
 }
+
+country_info <- function(x) {
+  tmp <- unlist(countries_data[countries_data$code == x, ])
+  list(code = tmp[["code"]], name = tmp[["name"]], parentCode = tmp[["parentCode"]])
+}
+
