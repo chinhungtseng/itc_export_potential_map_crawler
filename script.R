@@ -20,11 +20,11 @@ countries_data <- get_countries()
 countries_data <- dplyr::arrange(countries_data, as.numeric(code))
 countries_code <- as.numeric(countries_data$code)
 
-# set exporter as TW
+# set exporter to "Taipei Chinese"
 code_tw <- countries_code[which(countries_data$name == "Taipei, Chinese")]
 batchs <- split(countries_code, cut(seq_len(length(countries_code)), 20, labels = FALSE))
 
-for (batch in batchs[-1]) {
+for (batch in batchs) {
   # TODO need to fix parallel downloadings failed!
   doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
 
@@ -43,10 +43,9 @@ for (batch in batchs[-1]) {
   write_excel_csv(potential_data, paste0("data/sub_potential_data/potential_data_", min(batch), "_", max(batch), ".csv"), na = "")
   sleep_randomly()
 }
-
 ### END download potential data ###
 
-### START bind sub-potential data ###
+### BEGIN bind sub-potential data ###
 potential_data <- map(fs::dir_ls("data/sub_potential_data/"), read_csv,
   col_types = paste0(rep("c", 30), collapse = ""))
 

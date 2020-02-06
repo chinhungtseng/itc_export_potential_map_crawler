@@ -1,4 +1,4 @@
-# Function that fetch data and pasred the content
+# Function to fetch data and pasred the content
 fetch <- function(url) {
   counter <- 5
 
@@ -24,16 +24,17 @@ fetch <- function(url) {
     },
       error = function(cond) {
         print(cond)
-        # sleep_randomly()
+        sleep_randomly()
       })
 
     counter <- counter - 1
   }
 }
 
-# Function that convert parsed data to data.frame by specified url.
+# A function factory to convert parsed data to data.frame by specified url.
 get_data <- function(url) {
   force(url)
+
   function() {
     requese <- fetch(url)
 
@@ -53,9 +54,9 @@ get_countries <- get_data("https://exportpotential.intracen.org/api/en/countries
 get_sub_sectors <- get_data("https://exportpotential.intracen.org/api/en/sub-sectors")
 get_sectors <- get_data("https://exportpotential.intracen.org/api/en/sectors")
 
-
-# Unnest data.frame within a data.frame
+# Function to unnest a data.frame within a data.frame
 reformat_data_frame <- function(x) {
+  # extract data.frame in a data.frame
   split_data_frame <- function(x, col) {
     index <- which(names(x) == col)
     tmp_df <- x[[index]]
@@ -76,14 +77,21 @@ reformat_data_frame <- function(x) {
   x
 }
 
-# Function that download potential data by exporter and market code.
+# Function to download potential data by exporter and market code.
 download_potential_data <- function (exporter = 490, market) {
+  # assign default exporter with "Taipei Chinese" (490)
   urls <- sprintf("https://exportpotential.intracen.org/api/en/epis/products/from/i/%s/to/j/%s/what/k/all",
     exporter, market)
 
   tmp_data <- jsonlite::fromJSON(fetch(urls))
   tmp_data <- reformat_data_frame(tmp_data)
 
+  # add exporter info
+  tmp_data$ExporterCode <- exporter
+  tmp_data$ExporterName <- country_info(exporter)$name
+  tmp_data$ExporterParentCode <- country_info(exporter)$parentCode
+
+  # add market country info
   tmp_data$CountryCode <- market
   tmp_data$CountryName <- country_info(market)$name
   tmp_data$CountryParentCode <- country_info(market)$parentCode
@@ -91,8 +99,8 @@ download_potential_data <- function (exporter = 490, market) {
   tmp_data
 }
 
+# Function to get countries name and parent code by code.
 country_info <- function(x) {
   tmp <- unlist(countries_data[countries_data$code == x, ])
   list(code = tmp[["code"]], name = tmp[["name"]], parentCode = tmp[["parentCode"]])
 }
-
