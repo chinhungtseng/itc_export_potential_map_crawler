@@ -1,18 +1,30 @@
+# Program
+#   Download ITC Export Potential Map Data
+# Require packages
 library(httr)
 library(rvest)
 library(tidyverse)
+library(jsonlite)
 library(foreach)
 library(doParallel)
 
+# Source helper functions
 purrr::walk(fs::dir_ls("R", regexp = "*.R"), source, encoding = "UTF-8")
 
+# Create output directories
+output_dir <- c("data", "data/sub_potential_data")
+lapply(output_dir, function(x) {
+  if (!fs::dir_exists(x))
+    fs::dir_create(x)
+})
+
 ### BEGIN download meta data ###
-write_excel_csv(get_products(),    "data/products.csv",    na = "")
-write_excel_csv(get_countries(),   "data/countries.csv",   na = "")
-write_excel_csv(get_regions(),     "data/regions.csv",     na = "")
-write_excel_csv(get_sub_regions(), "data/sub_regions.csv", na = "")
-write_excel_csv(get_sectors(),     "data/sectors.csv",     na = "")
-write_excel_csv(get_sub_sectors(), "data/sub_sectors.csv", na = "")
+readr::write_excel_csv(get_products(),    "data/products.csv",    na = "")
+readr::write_excel_csv(get_countries(),   "data/countries.csv",   na = "")
+readr::write_excel_csv(get_regions(),     "data/regions.csv",     na = "")
+readr::write_excel_csv(get_sub_regions(), "data/sub_regions.csv", na = "")
+readr::write_excel_csv(get_sectors(),     "data/sectors.csv",     na = "")
+readr::write_excel_csv(get_sub_sectors(), "data/sub_sectors.csv", na = "")
 ### END download meta data ###
 
 ### BEGIN download potential data ###
@@ -40,16 +52,16 @@ for (batch in batchs) {
     download_potential_data(exporter = code_tw, market = i)
   }
 
-  write_excel_csv(potential_data, paste0("data/sub_potential_data/potential_data_", min(batch), "_", max(batch), ".csv"), na = "")
+  readr::write_excel_csv(potential_data, paste0("data/sub_potential_data/potential_data_", min(batch), "_", max(batch), ".csv"), na = "")
   sleep_randomly()
 }
 ### END download potential data ###
 
 ### BEGIN bind sub-potential data ###
-potential_data <- map(fs::dir_ls("data/sub_potential_data/"), read_csv,
+potential_data <- purrr::map(fs::dir_ls("data/sub_potential_data/"), readr::read_csv,
   col_types = paste0(rep("c", 30), collapse = ""))
 
-potential_data <- reduce(potential_data, bind_rows)
-write_excel_csv(potential_data, "data/potential_data_all.csv", na = "")
+potential_data <- purrr::reduce(potential_data, dplyr::bind_rows)
+readr::write_excel_csv(potential_data, "data/potential_data_all.csv", na = "")
 ### END bind sub-potential data ###
 
