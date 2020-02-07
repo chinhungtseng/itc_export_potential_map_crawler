@@ -1,6 +1,14 @@
 # Program
 #   Download ITC Export Potential Map Data
-# Require packages
+
+# Install require packages
+packages <- c("httr", "rvest", "tidyverse", "jsonlite", "foreach", "doParallel")
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE))
+    install.packages(pkg, character.only = TRUE)
+}
+
+### BEGIN the program ###
 library(httr)
 library(rvest)
 library(tidyverse)
@@ -65,3 +73,4 @@ potential_data <- purrr::reduce(potential_data, dplyr::bind_rows)
 readr::write_excel_csv(potential_data, "data/potential_data_all.csv", na = "")
 ### END bind sub-potential data ###
 
+### END the program ###
